@@ -1,6 +1,6 @@
 # bookkeeping
 
-Bookkeeping is a system for keeping track of books owned and loaned. It is easy to forget having loaned a book to a friend and who currently has what book. It can also be used to keep an inventory of books, including books not yet read and having a wishlist for books.
+Bookkeeping is a system for keeping track of books owned and loaned. It is easy to forget having loaned a book to a friend and who currently has what book. It can also be used to keep an inventory of books, listing books not yet read and having a wishlist for books.
 
 Functionalities:
 * The user can sign in and register a new user account
