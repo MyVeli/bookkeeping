@@ -1,0 +1,6 @@
+venv
+tests
+launch.json
+settings.json
+app.cpython-39.pyc
+.env
