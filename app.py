@@ -11,15 +11,20 @@ db = SQLAlchemy(app)
 
 @app.route("/")
 def index():
-    if session.get("username") == None:
+    username = session.get("username")
+    if username == None:
         return redirect("/login")
-    books = db.session.execute("SELECT author,name FROM Title")
+    books = db.session.execute("SELECT author,name FROM Title LEFT JOIN Book ON Title.id=Book.title_id " +
+    "WHERE Book.owner_id=(SELECT id FROM Users WHERE name=:username)",{"username":username})
     return render_template("index.html",message="Welcome "+session.get("username"),items=books)
 
 @app.route("/addtitle")
 def add_title():
-    status = db.session.execute("SELECT status FROM BookStatus")
-    return render_template("addtitle.html", statuses=status)
+    status = db.session.execute("SELECT status FROM BookStatus").fetchall()
+    statuses = list()
+    for i in status:
+        statuses.append(i[0])
+    return render_template("addtitle.html", statuses=statuses)
 
 @app.route("/newtitle",methods=["POST"])
 def newtitle():
