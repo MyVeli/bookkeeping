@@ -14,17 +14,25 @@ def index():
     username = session.get("username")
     if username == None:
         return redirect("/login")
-    books = db.session.execute("SELECT author,name FROM Title LEFT JOIN Book ON Title.id=Book.title_id " +
-    "WHERE Book.owner_id=(SELECT id FROM Users WHERE name=:username)",{"username":username})
-    return render_template("index.html",message="Welcome "+session.get("username"),items=books)
+    books = db.session.execute("SELECT author,Title.name,status,Friends.name FROM Title LEFT JOIN Book ON Title.id=Book.title_id " +
+    "LEFT JOIN BookStatus ON Book.status_id=BookStatus.id LEFT JOIN Friends ON Book.holder_id=Friends.id " +
+    "WHERE Book.owner_id=(SELECT id FROM Users WHERE name=:username)",{"username":username}).fetchall()
+    loaned = list()
+    for book in books:
+        if book[2] == "Loaned":
+            loaned.append(book)
+    return render_template("index.html",message="Welcome "+session.get("username"),books=books,loaned=loaned)
 
 @app.route("/addtitle")
 def add_title():
+    return render_template("addtitle.html", statuses=get_statuses())
+
+def get_statuses():
     status = db.session.execute("SELECT status FROM BookStatus").fetchall()
     statuses = list()
     for i in status:
         statuses.append(i[0])
-    return render_template("addtitle.html", statuses=statuses)
+    return statuses
 
 @app.route("/newtitle",methods=["POST"])
 def newtitle():
@@ -94,3 +102,18 @@ def add_user():
         except Exception:
             print("virhe")
     return render_template("login.html",message="Account created. Please login with the new credentials.")
+
+@app.route("/status")
+def status():
+    return render_template("statuses.html",statuses=get_statuses())
+
+@app.route("/add_status",methods=["POST"])
+def add_status():
+    status = request.form["name"]
+    query = "INSERT INTO BookStatus (status) VALUES (:status)"
+    try:
+        db.session.execute(query,{"status":status})
+        db.session.commit()
+    except:
+        return redirect("/new_status")
+    return redirect("/status")

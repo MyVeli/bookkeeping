@@ -1,0 +1,12 @@
+<title>Add status</title>
+<h2>Current statuses:</h2><br>
+{% for status in statuses %}
+    <li> {{status}}
+{% endfor %}<br>
+<h2>Add a new status:</h2><br>
+<form action="/add_status" method="POST">
+Status name: <br>
+<input type="text" name="name"><br>
+<input type="submit" value="add status">
+</form>
+<a href="/">back to main page</a>
