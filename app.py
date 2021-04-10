@@ -39,6 +39,7 @@ def newtitle():
     owner = session.get("username")
     if owner == None:
         redirect("/login")
+    status = request.form["status"]
     owner_id = db.session.execute("SELECT id FROM Users WHERE name=:name",{"name":owner}).fetchone()[0]
     add_title(request.form["author"],request.form["name"],request.form["genre"],request.form["status"])
     if request.form["add"] == "True":
