@@ -1,12 +1,10 @@
 from flask import Flask
 from flask import render_template, redirect, request, session
 from flask_sqlalchemy import SQLAlchemy
-#from flask_session import Session
 from os import getenv
 from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
-#Session(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.secret_key = getenv("SECRET_KEY")
 db = SQLAlchemy(app)
@@ -16,7 +14,7 @@ def index():
     if session.get("username") == None:
         return redirect("/login")
     books = db.session.execute("SELECT author,name FROM Title")
-    return render_template("index.html",message="Tervetuloa!",items=books)
+    return render_template("index.html",message="Welcome "+session.get("username"),items=books)
 
 @app.route("/addtitle")
 def add_title():
@@ -25,7 +23,10 @@ def add_title():
 
 @app.route("/newtitle",methods=["POST"])
 def newtitle():
-    owner_id = 1
+    owner = session.get("username")
+    if owner == None:
+        redirect("/login")
+    owner_id = db.session.execute("SELECT id FROM Users WHERE name=:name",{"name":owner}).fetchone()[0]
     add_title(request.form["author"],request.form["name"],request.form["genre"],request.form["status"])
     if request.form["add"] == "True":
         add_book(request.form["author"],request.form["name"],request.form["genre"],request.form["status"],owner_id)
@@ -61,7 +62,6 @@ def verify_credentials():
     elif check_password_hash(pw_hash,pw):
         session["username"] = username
     else:
-        print( check_password_hash(pw_hash,pw))
         return render_template("login.html",message="Wrong password or username.")
     return redirect("/")
 
