@@ -11,3 +11,15 @@ Functionalities:
 * The user can add the names of their friends to the system
 * The user can mark books as being loaned to or from one of their friends
 * The user can list and search books in the system based on title, genre, person or status
+
+Current state:
+* registration, login and logout have been implemented
+* it's possible to add new books to the system and visibility is restricted by user account
+* it's possible to add new statuses and genres 
+* UI is very rough
+
+<br>
+Testing:<br>
+heroku link: 
+https://tsohabookkeeping.herokuapp.com/ <br>
+Register a new account, login with it. From the index page you can add new status or new book.
