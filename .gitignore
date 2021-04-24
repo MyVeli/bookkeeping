@@ -4,3 +4,8 @@ launch.json
 settings.json
 app.cpython-39.pyc
 .env
+.__pycache__
+src/user_management/__pycache__/
+src\user_management\__pycache__\add_user.cpython-39.pyc
+src\user_management\__pycache__\login.cpython-39.pyc
+src\services\__pycache__

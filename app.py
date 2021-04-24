@@ -2,7 +2,12 @@ from flask import Flask
 from flask import render_template, redirect, request, session
 from flask_sqlalchemy import SQLAlchemy
 from os import getenv
-from werkzeug.security import check_password_hash, generate_password_hash
+
+from src.user_management.login import handle_login, CredentialError
+from src.user_management.add_user import handle_registration, UsernameInUse, EmptyPassword
+from src.services.helper_functions import get_statuses
+from src.services.book_management import add_book,add_title, get_books_for_user_and_status
+from src.services.friend_management import add_friend, get_friends
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
@@ -14,9 +19,7 @@ def index():
     username = session.get("username")
     if username == None:
         return redirect("/login")
-    books = db.session.execute("SELECT author,Title.name,status,Friends.name FROM Title LEFT JOIN Book ON Title.id=Book.title_id " +
-    "LEFT JOIN BookStatus ON Book.status_id=BookStatus.id LEFT JOIN Friends ON Book.holder_id=Friends.id " +
-    "WHERE Book.owner_id=(SELECT id FROM Users WHERE name=:username)",{"username":username}).fetchall()
+    books = get_books_for_user_and_status(db,username,"")
     loaned = list()
     for book in books:
         if book[2] == "Loaned":
@@ -24,15 +27,8 @@ def index():
     return render_template("index.html",message="Welcome "+session.get("username"),books=books,loaned=loaned)
 
 @app.route("/addtitle")
-def add_title():
-    return render_template("addtitle.html", statuses=get_statuses())
-
-def get_statuses():
-    status = db.session.execute("SELECT status FROM BookStatus").fetchall()
-    statuses = list()
-    for i in status:
-        statuses.append(i[0])
-    return statuses
+def _add_title():
+    return render_template("addtitle.html", statuses=get_statuses(db))
 
 @app.route("/newtitle",methods=["POST"])
 def newtitle():
@@ -41,46 +37,28 @@ def newtitle():
         redirect("/login")
     status = request.form["status"]
     owner_id = db.session.execute("SELECT id FROM Users WHERE name=:name",{"name":owner}).fetchone()[0]
-    add_title(request.form["author"],request.form["name"],request.form["genre"],request.form["status"])
+    add_title(db,request.form["author"],request.form["name"],request.form["genre"],request.form["status"])
     if request.form["add"] == "True":
-        add_book(request.form["author"],request.form["name"],request.form["genre"],request.form["status"],owner_id)
+        add_book(db,request.form["author"],request.form["name"],request.form["genre"],request.form["status"],owner_id)
     return redirect("/")
 
-def add_title(author,name,genre,status):
-    query = "SELECT id FROM Title WHERE name=:name AND author=:author AND genre=:genre"
-    exists = db.session.execute(query, {"name":name,"author":author,"genre":genre})
-    if exists.fetchone() == None:
-        query = "INSERT INTO Title (name, author, genre) VALUES (:name,:author,:genre)"
-        db.session.execute(query, {"name":name,"author":author,"genre":genre})
-        db.session.commit()
-
-def add_book(author,name,genre,status,owner_id):
-    query = "INSERT INTO Book (title_id, status_id, owner_id) VALUES" +\
-        " ((SELECT id FROM Title WHERE author=:author AND name=:name AND genre=:genre)," +\
-        "(SELECT id FROM BookStatus WHERE status=:status),:owner_id)"
-    db.session.execute(query,{"author":author,"name":name,"genre":genre,"status":status,"owner_id":owner_id})
-    db.session.commit()
-
 @app.route("/login")
-def login():
+def _login():
     return render_template("login.html")
 
 @app.route("/verify_credentials",methods=["POST"])
 def verify_credentials():
     username = request.form["username"]
     pw = request.form["pw"]
-    query = "SELECT password FROM Users WHERE name=:username"
-    pw_hash = db.session.execute(query,{"username":username}).fetchone()[0]
-    if pw_hash == None:
+    try:
+        username = handle_login(db,username,pw)
+    except CredentialError:
         return render_template("login.html",message="Wrong password or username.")
-    elif check_password_hash(pw_hash,pw):
-        session["username"] = username
-    else:
-        return render_template("login.html",message="Wrong password or username.")
+    session["username"] = username
     return redirect("/")
 
 @app.route("/register")
-def register():
+def _register():
     return render_template("register.html")
 
 @app.route("/logout")
@@ -90,23 +68,17 @@ def logout():
 
 @app.route("/add_user",methods=["POST"])
 def add_user():
-    username = request.form["username"]
-    pw = generate_password_hash(request.form["pw"])
-    query = "SELECT id FROM Users Where name=:username"
-    if db.session.execute(query, {"username":username}).fetchone() != None:
-        return render_template("register.html",message="User name is already in use. Please choose another one")
-    else:
-        query = "INSERT INTO Users (name, password) VALUES (:name,:pw)"
-        try:
-            db.session.execute(query, {"name":username,"pw":pw})
-            db.session.commit()
-        except Exception:
-            print("virhe")
+    try:
+        handle_registration(db,request.form["username"],request.form["pw"])
+    except UsernameInUse:        
+        return render_template("register.html",message="Username is already in use or empty. Please choose another one")
+    except EmptyPassword:
+        return render_template("register.html",message="Password cannot be left empty.")
     return render_template("login.html",message="Account created. Please login with the new credentials.")
 
 @app.route("/status")
-def status():
-    return render_template("statuses.html",statuses=get_statuses())
+def _status():
+    return render_template("statuses.html",statuses=get_statuses(db))
 
 @app.route("/add_status",methods=["POST"])
 def add_status():
@@ -118,3 +90,13 @@ def add_status():
     except:
         return redirect("/new_status")
     return redirect("/status")
+
+@app.route("/friends")
+def _friends():
+    friends = get_friends(db, session.get("username"))
+    return render_template("friends.html",friends=friends)
+
+@app.route("/add_friend",methods=["POST"])
+def _add_friend():
+    add_friend(db,session.get("username"),request.form["name"])
+    return redirect("/friends")

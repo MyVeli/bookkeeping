@@ -1,0 +1,12 @@
+<title>Friends</title>
+<h2>Current friends:</h2><br>
+{% for friend in friends %}
+    <li> {{friend}}
+{% endfor %}<br>
+<h2>Add a new friend:</h2><br>
+<form action="/add_friend" method="POST">
+Friend name: <br>
+<input type="text" name="name"><br>
+<input type="submit" value="add friend">
+</form>
+<a href="/">back to main page</a>
