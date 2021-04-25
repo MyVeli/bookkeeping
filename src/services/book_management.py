@@ -17,7 +17,7 @@ def add_book(db,author,name,genre,status,username,holder):
     query = "INSERT INTO Book (title_id, status_id, owner_id, holder_id) VALUES" +\
         " ((SELECT id FROM Title WHERE author=:author AND name=:name AND genre=:genre)," +\
         "(SELECT id FROM BookStatus WHERE status=:status),(SELECT id FROM Users WHERE name=:username),"+\
-        "(SELECT id FROM Friends WHERE name=:holder and user_id=(SELECT id FROM Users WHERE name2=:username)))"
+        "(SELECT id FROM Friends WHERE name=:holder and user_id=(SELECT id FROM Users WHERE name=:name2)))"
     db.session.execute(query,{"author":author,"name":name,"genre":genre,"status":status,\
         "username":username,"holder":holder,"name2":username})
     db.session.commit()
