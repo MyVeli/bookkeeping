@@ -11,6 +11,7 @@ def handle_registration(db,username,pw):
         query = "INSERT INTO Users (name, password) VALUES (:name,:pw)"
         try:
             db.session.execute(query, {"name":username,"pw":pw_hash})
+            db.session.execute("INSERT INTO Friends (name) VALUES (:me)", {"me":'me'})
             db.session.commit()
         except Exception:
             print("virhe")

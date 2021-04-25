@@ -20,10 +20,16 @@ Status:
 </select>
 <br>
 <br>
-Add title to owned books?
+new holder:
+<select id="friend" name="friend">
+    {% for i in friends %}
+    <option value="{{i}}"> {{i}}</option>
+    {% endfor %}
+</select> <br>
+<!--Add title to owned books?
 <input type="checkbox" name="add" value="True">
 <br>
-<br>
+<br>-->
 <input type="submit" value="add book">
 </form>
 <a href="/">back to main page</a>

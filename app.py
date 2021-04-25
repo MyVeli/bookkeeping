@@ -26,23 +26,38 @@ def index():
     friend_list = list()
     for friend in get_friends(db,session.get("username")):
         friend_list.append(friend)
-    friend_list.append("me")
     return render_template("index.html",message="Welcome "+session.get("username"),\
-        books=books,loaned=loaned,statuses=get_statuses(db),\
-            friends=friend_list)
+        books=books,loaned=loaned,statuses=get_statuses(db),friends=friend_list)
+
+@app.route("/edit_books")
+def _edit_list():
+    if not check_login(session): return redirect("/login")
+    books = get_books_for_user_and_status(db,session.get("username"),"")
+    loaned = list()
+    for book in books:
+        if book[2] == "Loaned":
+            loaned.append(book)
+    friend_list = list()
+    for friend in get_friends(db,session.get("username")):
+        friend_list.append(friend)
+    return render_template("edit_book_statuses.html",message="Welcome "+session.get("username"),\
+        books=books,loaned=loaned,statuses=get_statuses(db),friends=friend_list)
 
 @app.route("/addtitle")
 def _add_title():
     if not check_login(session): return redirect("/login")
-    return render_template("addtitle.html", statuses=get_statuses(db))
+    friend_list = list()
+    for friend in get_friends(db,session.get("username")):
+        friend_list.append(friend)
+    return render_template("addtitle.html", statuses=get_statuses(db), friends=friend_list)
 
 @app.route("/newtitle",methods=["POST"])
 def newtitle():
     if not check_login(session): return redirect("/login")
     add_title(db,request.form["author"],request.form["name"],request.form["genre"],request.form["status"])
-    if request.form["add"] == "True":
-        add_book(db,request.form["author"],request.form["name"],\
-            request.form["genre"],request.form["status"],session.get("username"))
+    add_book(db,request.form["author"],request.form["name"],request.form["genre"],\
+        request.form["status"],session.get("username"),request.form["friend"])
+    #if request.form["add"] == "True":
     return redirect("/")
 
 @app.route("/login")

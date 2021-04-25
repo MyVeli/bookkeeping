@@ -4,19 +4,21 @@ def add_title(db,author,name,genre,status):
 
     query = "SELECT id FROM Title WHERE name=:name AND author=:author AND genre=:genre"
     exists = db.session.execute(query, {"name":name,"author":author,"genre":genre})
-    if exists.fetchone() == None:
+    exists = exists.fetchone()
+    if exists is None:
         query = "INSERT INTO Title (name, author, genre) VALUES (:name,:author,:genre)"
         db.session.execute(query, {"name":name,"author":author,"genre":genre})
         db.session.commit()
 
-def add_book(db,author,name,genre,status,username):
+def add_book(db,author,name,genre,status,username,holder):
     """Adds a book to a user. Requires the book to be in the DB as title.
     Requires db,author,name,genre,status and username as parameters."""
 
-    query = "INSERT INTO Book (title_id, status_id, owner_id) VALUES" +\
+    query = "INSERT INTO Book (title_id, status_id, owner_id, holder_id) VALUES" +\
         " ((SELECT id FROM Title WHERE author=:author AND name=:name AND genre=:genre)," +\
-        "(SELECT id FROM BookStatus WHERE status=:status),(SELECT id FROM Users WHERE name=:username))"
-    db.session.execute(query,{"author":author,"name":name,"genre":genre,"status":status,"username":username})
+        "(SELECT id FROM BookStatus WHERE status=:status),(SELECT id FROM Users WHERE name=:username),"+\
+        "(SELECT id FROM Friends WHERE name=:holder))"
+    db.session.execute(query,{"author":author,"name":name,"genre":genre,"status":status,"username":username,"holder":holder})
     db.session.commit()
 
 def get_books_for_user_and_status(db,username,status):
@@ -34,6 +36,8 @@ def get_books_for_user_and_status(db,username,status):
 def change_book_status(db,username,titles,new_status):
     """Changes the status of books. Can update several books at one time."""
     title = titles_from_formlist(titles)
+    if len(title) == 0:
+        return
     query = "UPDATE Book SET status_id = (SELECT id FROM BookStatus WHERE status=:newstatus) " +\
         "WHERE title_id IN (SELECT id FROM Title WHERE concat(author,name,genre) IN :title) and owner_id = " +\
         "(SELECT id FROM Users WHERE name=:username)" 
@@ -43,6 +47,8 @@ def change_book_status(db,username,titles,new_status):
 def change_book_holder(db,username,titles,new_holder):
     """Changes the holder of books. Can update several at one time."""
     title = titles_from_formlist(titles)
+    if len(title) == 0:
+        return
     query = "UPDATE Book SET holder_id = (SELECT id FROM Friends WHERE name=:new_holder) " +\
         "WHERE title_id IN (SELECT id FROM Title WHERE concat(author,name,genre) IN :title) and owner_id = " +\
         "(SELECT id FROM Users WHERE name=:username)"
