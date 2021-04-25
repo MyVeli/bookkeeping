@@ -15,11 +15,14 @@ Functionalities:
 Current state:
 * registration, login and logout have been implemented
 * it's possible to add new books to the system and visibility is restricted by user account
-* it's possible to add new statuses and genres 
-* UI is very rough
+* it's possible to add new statuses and genres
+* User can add friends
+* User can loan books to friends 
+* User can change the status of books
+* UI is missing styling and thus very rough
 
 <br>
 Testing:<br>
 heroku link: 
 https://tsohabookkeeping.herokuapp.com/ <br>
-Register a new account, login with it. From the index page you can add new status or new book.
+Register a new account, login with it. From the index page you can add new status, book or friend.
