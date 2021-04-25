@@ -33,28 +33,26 @@ def get_books_for_user_and_status(db,username,status):
 
 def change_book_status(db,username,titles,new_status):
     """Changes the status of books. Can update several books at one time."""
-    """title = "("
-    for i in titles:
-        if i[0:5]=="book:":
-            if len(title) != 1:
-                title += ","
-            title += i[5:]
-    title += ")"
-    if len(title) == 2:
-        return"""
-    title = list()
-    for i in titles:
-        if i[0:5]=="book:":
-            title.append(i[5:])
-    test = tuple(title)
+    title = titles_from_formlist(titles)
     query = "UPDATE Book SET status_id = (SELECT id FROM BookStatus WHERE status=:newstatus) " +\
         "WHERE title_id IN (SELECT id FROM Title WHERE concat(author,name,genre) IN :title) and owner_id = " +\
         "(SELECT id FROM Users WHERE name=:username)" 
-    db.session.execute(query,{"newstatus":new_status,"title":test,"username":username})
+    db.session.execute(query,{"newstatus":new_status,"title":title,"username":username})
     db.session.commit()
 
-def change_book_holder(db,username,bookname,new_holder):
+def change_book_holder(db,username,titles,new_holder):
+    """Changes the holder of books. Can update several at one time."""
+    title = titles_from_formlist(titles)
     query = "UPDATE Book SET holder_id = (SELECT id FROM Friends WHERE name=:new_holder) " +\
-        "WHERE title_id = (SELECT id FROM Title WHERE name=:bookname) and owner_id = " +\
+        "WHERE title_id IN (SELECT id FROM Title WHERE concat(author,name,genre) IN :title) and owner_id = " +\
         "(SELECT id FROM Users WHERE name=:username)"
-    db.session.execute(query,{"new_holder":new_holder,"bookname":bookname,"username":username})
+    db.session.execute(query,{"new_holder":new_holder,"title":title,"username":username})
+    db.session.commit()
+
+def titles_from_formlist(form_list):
+    """Returns a tuple with books. Picks items starting with "book:" from given array."""
+    title_list = list()
+    for i in form_list:
+        if i[0:5]=="book:":
+            title_list.append(i[5:])
+    return tuple(title_list)

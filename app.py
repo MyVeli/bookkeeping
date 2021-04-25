@@ -6,7 +6,8 @@ from os import getenv
 from src.user_management.login import handle_login, CredentialError
 from src.user_management.add_user import handle_registration, UsernameInUse, EmptyPassword
 from src.services.helper_functions import get_statuses, check_login
-from src.services.book_management import add_book,add_title, get_books_for_user_and_status,change_book_status
+from src.services.book_management import add_book,add_title, \
+    get_books_for_user_and_status,change_book_status, change_book_holder
 from src.services.friend_management import add_friend, get_friends
 
 app = Flask(__name__)
@@ -101,6 +102,7 @@ def change_status():
     for i in request.form:
         print(i)
     change_book_status(db,session.get("username"),request.form,request.form["status"])
+    change_book_holder(db,session.get("username"),request.form,request.form["friend"])
     return redirect("/")
 
 @app.route("/friends")
