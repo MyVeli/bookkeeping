@@ -2,11 +2,26 @@
 <h1>Bookkeeping app</h1>
 <p>{{ message }}</p>
 <h3>My books:</h3>
+<form action="/change_status" method="POST">
 <ul>
     {% for book in books %}
-    <li> {{book[0]}}: {{book[1]}}. Status: {{book[2]}}
+    <li> {{book[0]}}: {{book[1]}}. Status: {{book[2]}} <input type="checkbox" name="book:{{book[0]}}{{book[1]}}{{book[4]}}">
     {% endfor %}
 </ul>
+new status:
+<select id="status" name="status">
+    {% for i in statuses %}
+    <option value="{{i}}"> {{i}}</option>
+    {% endfor %}
+</select> <br>
+new holder:
+<select id="friend" name="friend">
+    {% for i in friends %}
+    <option value="{{i}}"> {{i}}</option>
+    {% endfor %}
+</select> <br>
+<input type="submit" value="change book status">
+</form>
 <h3>Books in loan:</h3>
 <ul>
     {% for book in loaned %}

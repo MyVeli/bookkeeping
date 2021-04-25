@@ -5,8 +5,8 @@ from os import getenv
 
 from src.user_management.login import handle_login, CredentialError
 from src.user_management.add_user import handle_registration, UsernameInUse, EmptyPassword
-from src.services.helper_functions import get_statuses
-from src.services.book_management import add_book,add_title, get_books_for_user_and_status
+from src.services.helper_functions import get_statuses, check_login
+from src.services.book_management import add_book,add_title, get_books_for_user_and_status,change_book_status
 from src.services.friend_management import add_friend, get_friends
 
 app = Flask(__name__)
@@ -16,30 +16,32 @@ db = SQLAlchemy(app)
 
 @app.route("/")
 def index():
-    username = session.get("username")
-    if username == None:
-        return redirect("/login")
-    books = get_books_for_user_and_status(db,username,"")
+    if not check_login(session): return redirect("/login")
+    books = get_books_for_user_and_status(db,session.get("username"),"")
     loaned = list()
     for book in books:
         if book[2] == "Loaned":
             loaned.append(book)
-    return render_template("index.html",message="Welcome "+session.get("username"),books=books,loaned=loaned)
+    friend_list = list()
+    for friend in get_friends(db,session.get("username")):
+        friend_list.append(friend)
+    friend_list.append("me")
+    return render_template("index.html",message="Welcome "+session.get("username"),\
+        books=books,loaned=loaned,statuses=get_statuses(db),\
+            friends=friend_list)
 
 @app.route("/addtitle")
 def _add_title():
+    if not check_login(session): return redirect("/login")
     return render_template("addtitle.html", statuses=get_statuses(db))
 
 @app.route("/newtitle",methods=["POST"])
 def newtitle():
-    owner = session.get("username")
-    if owner == None:
-        redirect("/login")
-    status = request.form["status"]
-    owner_id = db.session.execute("SELECT id FROM Users WHERE name=:name",{"name":owner}).fetchone()[0]
+    if not check_login(session): return redirect("/login")
     add_title(db,request.form["author"],request.form["name"],request.form["genre"],request.form["status"])
     if request.form["add"] == "True":
-        add_book(db,request.form["author"],request.form["name"],request.form["genre"],request.form["status"],owner_id)
+        add_book(db,request.form["author"],request.form["name"],\
+            request.form["genre"],request.form["status"],session.get("username"))
     return redirect("/")
 
 @app.route("/login")
@@ -78,10 +80,12 @@ def add_user():
 
 @app.route("/status")
 def _status():
+    if not check_login(session): return redirect("/login")
     return render_template("statuses.html",statuses=get_statuses(db))
 
 @app.route("/add_status",methods=["POST"])
 def add_status():
+    if not check_login(session): return redirect("/login")
     status = request.form["name"]
     query = "INSERT INTO BookStatus (status) VALUES (:status)"
     try:
@@ -91,12 +95,22 @@ def add_status():
         return redirect("/new_status")
     return redirect("/status")
 
+@app.route("/change_status",methods=["POST"])
+def change_status():
+    if not check_login(session): return redirect("/login")
+    for i in request.form:
+        print(i)
+    change_book_status(db,session.get("username"),request.form,request.form["status"])
+    return redirect("/")
+
 @app.route("/friends")
 def _friends():
+    if not check_login(session): return redirect("/login")
     friends = get_friends(db, session.get("username"))
     return render_template("friends.html",friends=friends)
 
 @app.route("/add_friend",methods=["POST"])
 def _add_friend():
+    if not check_login(session): return redirect("/login")
     add_friend(db,session.get("username"),request.form["name"])
     return redirect("/friends")
