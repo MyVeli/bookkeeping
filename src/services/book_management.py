@@ -17,8 +17,9 @@ def add_book(db,author,name,genre,status,username,holder):
     query = "INSERT INTO Book (title_id, status_id, owner_id, holder_id) VALUES" +\
         " ((SELECT id FROM Title WHERE author=:author AND name=:name AND genre=:genre)," +\
         "(SELECT id FROM BookStatus WHERE status=:status),(SELECT id FROM Users WHERE name=:username),"+\
-        "(SELECT id FROM Friends WHERE name=:holder))"
-    db.session.execute(query,{"author":author,"name":name,"genre":genre,"status":status,"username":username,"holder":holder})
+        "(SELECT id FROM Friends WHERE name=:holder and user_id=(SELECT id FROM Users WHERE name2=:username)))"
+    db.session.execute(query,{"author":author,"name":name,"genre":genre,"status":status,\
+        "username":username,"holder":holder,"name2":username})
     db.session.commit()
 
 def get_books_for_user_and_status(db,username,status):
@@ -49,10 +50,11 @@ def change_book_holder(db,username,titles,new_holder):
     title = titles_from_formlist(titles)
     if len(title) == 0:
         return
-    query = "UPDATE Book SET holder_id = (SELECT id FROM Friends WHERE name=:new_holder) " +\
+    query = "UPDATE Book SET holder_id = (SELECT id FROM Friends WHERE name=:new_holder and user_id="\
+        "(SELECT id FROM Users WHERE name=:name)) " +\
         "WHERE title_id IN (SELECT id FROM Title WHERE concat(author,name,genre) IN :title) and owner_id = " +\
         "(SELECT id FROM Users WHERE name=:username)"
-    db.session.execute(query,{"new_holder":new_holder,"title":title,"username":username})
+    db.session.execute(query,{"new_holder":new_holder,"name":username,"title":title,"username":username})
     db.session.commit()
 
 def titles_from_formlist(form_list):
