@@ -1,4 +1,5 @@
 from werkzeug.security import check_password_hash
+from src.services.exceptions import CredentialError
 
 def handle_login(db,username,pw):
     query = "SELECT password FROM Users WHERE name=:username"
@@ -10,5 +11,3 @@ def handle_login(db,username,pw):
     else:
         raise CredentialError("Wrong password or username")
 
-class CredentialError(Exception):
-    pass

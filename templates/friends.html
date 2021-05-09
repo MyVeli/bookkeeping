@@ -1,36 +1,74 @@
 <!DOCTYPE html>
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </head>
     <title>Bookkeeping app</title>
     <body>
-        <nav class="navbar navbar-default">
+        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
             <div class="navbar-header">
                 <a class="navbar-brand" href="/">Bookkeeping app</a>
             </div>
-            <ul class="nav navbar-nav">
-                <li><a href="/">Home</a></li>
-                <li><a href="/addtitle">Add a book</a></li>
-                <li><a href="/status">Add a status type</a></li>
-                <li class="active"><a href="/friends">Friends</a></li>
-                <li><a href="/logout">logout</a></li>
+            <ul class="navbar-nav">
+                <li><a class="nav-link" href="/">Home</a></li>
+                <li><a class="nav-link" href="/addtitle">Add a book</a></li>
+                <li><a class="nav-link" href="/status">Add a status type</a></li>
+                <li class="nav-item active"><a class="nav-link" href="/friends">Friends</a></li>
+                <li><a class="nav-link" href="/logout">logout</a></li>
             </ul>
         </nav>
-        <div class="container-fluid text-center">
-            <title>Friends</title>
-            <h2>Current friends:</h2><br>
-            {% for friend in friends %}
-                <li> {{friend}} </li>
-            {% endfor %}<br>
-            <h2>Add a new friend:</h2><br>
-            <form action="/add_friend" method="POST">
-            Friend name: <br>
-            <input type="text" name="name"><br>
-            <input type="submit" value="add friend">
-            </form>
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <h2>Current friends*:</h2><br>
+                    <input class="form-control" id="searchInput" type="text" placeholder="Search..">
+                    <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                            </tr>
+                        </thead>
+                        <tbody id="friendTable">
+                            {% for friend in friends %}
+                            <tr>
+                                <td> {{friend}} </td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <h2>Add a new friend:</h2><br>
+                    {% with errors = get_flashed_messages() %}
+                        {% if errors %}
+                        {% for error in errors %}
+                            {{error}}
+                        {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    <form action="/add_friend" method="POST">
+                        Friend name: <br>
+                        <input type="text" name="name"><br>
+                        <button type="submit" class="btn btn-primary">Add friend</button>
+                    </form><br><br>
+                    <p>*Friends are not meant for connecting users despite the naming, but for tracking
+                        who holds which book.
+                    </p>
+                </div>
+            </div>
         </div>
+        <script>
+            $(document).ready(function(){
+              $("#searchInput").on("keyup", function() {
+                var search = $(this).val().toLowerCase();
+                $("#friendTable tr").filter(function() {
+                  $(this).toggle($(this).text().toLowerCase().indexOf(search) > -1)
+                });
+              });
+            });
+            </script>
     </body>
 </html>

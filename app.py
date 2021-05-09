@@ -1,14 +1,16 @@
 from flask import Flask
-from flask import render_template, redirect, request, session
+from flask import render_template, redirect, request, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from os import getenv
 
-from src.user_management.login import handle_login, CredentialError
-from src.user_management.add_user import handle_registration, UsernameInUse, EmptyPassword
+from src.user_management.login import handle_login
+from src.user_management.add_user import handle_registration
 from src.services.helper_functions import get_statuses, check_login
-from src.services.book_management import add_book,add_title, \
-    get_books_for_user_and_status,change_book_status, change_book_holder
+from src.services.book_management import add_book, add_title, add_status,\
+    get_books_for_user_and_status, change_book_status, change_book_holder
 from src.services.friend_management import add_friend, get_friends
+from src.services.exceptions import UsernameInUse, EmptyPassword, EmptyInput,\
+    DatabaseException, CredentialError, LongInput, AlreadyExistsException
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
@@ -18,7 +20,12 @@ db = SQLAlchemy(app)
 @app.route("/")
 def index():
     if not check_login(session): return redirect("/login")
-    books = get_books_for_user_and_status(db,session.get("username"),"")
+    try:
+        books = get_books_for_user_and_status(db,session.get("username"),"")
+    except DatabaseException as e:
+        return render_template("index.html",message=e)
+    except Exception as e:
+        return render_template("index.html",message="Unexpected error: " + str(e))
     loaned = list()
     for book in books:
         if book[2] == "Loaned":
@@ -29,10 +36,16 @@ def index():
     return render_template("index.html",message="Welcome "+session.get("username"),\
         books=books,loaned=loaned,statuses=get_statuses(db),friends=friend_list)
 
+
 @app.route("/edit_books")
 def _edit_list():
     if not check_login(session): return redirect("/login")
-    books = get_books_for_user_and_status(db,session.get("username"),"")
+    try:
+        books = get_books_for_user_and_status(db,session.get("username"),"")
+    except DatabaseException as e:
+        return render_template("index.html",message=e)
+    except Exception as e:
+        return render_template("index.html",message="Unexpected error: " + str(e))
     loaned = list()
     for book in books:
         if book[2] == "Loaned":
@@ -54,11 +67,15 @@ def _add_title():
 @app.route("/newtitle",methods=["POST"])
 def newtitle():
     if not check_login(session): return redirect("/login")
-    add_title(db,request.form["author"],request.form["name"],request.form["genre"],request.form["status"])
-    add_book(db,request.form["author"],request.form["name"],request.form["genre"],\
-        request.form["status"],session.get("username"),request.form["friend"])
-    #if request.form["add"] == "True":
-    return redirect("/")
+    try:
+        add_title(db,request.form["author"],request.form["name"],request.form["genre"],request.form["status"])
+        add_book(db,request.form["author"],request.form["name"],request.form["genre"],\
+            request.form["status"],session.get("username"),request.form["friend"])
+    except Exception as e:
+        flash(str(e))
+    else:
+        flash('Book added')
+    return redirect("/addtitle")
 
 @app.route("/login")
 def _login():
@@ -89,9 +106,13 @@ def add_user():
     try:
         handle_registration(db,request.form["username"],request.form["pw"])
     except UsernameInUse:        
-        return render_template("register.html",message="Username is already in use or empty. Please choose another one")
+        return render_template("register.html",message="Username is already in use or empty."+\
+            " Please choose another one")
     except EmptyPassword:
         return render_template("register.html",message="Password cannot be left empty.")
+    except LongInput:
+        return render_template("register.html",message="Please keep username and password at"+\
+            " less than 30 characters.")
     return render_template("login.html",message="Account created. Please login with the new credentials.")
 
 @app.route("/status")
@@ -100,24 +121,23 @@ def _status():
     return render_template("statuses.html",statuses=get_statuses(db))
 
 @app.route("/add_status",methods=["POST"])
-def add_status():
+def _add_status():
     if not check_login(session): return redirect("/login")
     status = request.form["name"]
-    query = "INSERT INTO BookStatus (status) VALUES (:status)"
     try:
-        db.session.execute(query,{"status":status})
-        db.session.commit()
-    except:
-        return redirect("/new_status")
+        add_status(db, status)  
+    except Exception as e:
+        flash(str(e))
     return redirect("/status")
 
 @app.route("/change_status",methods=["POST"])
 def change_status():
     if not check_login(session): return redirect("/login")
-    for i in request.form:
-        print(i)
-    change_book_status(db,session.get("username"),request.form,request.form["status"])
-    change_book_holder(db,session.get("username"),request.form,request.form["friend"])
+    try:
+        change_book_status(db,session.get("username"),request.form,request.form["status"])
+        change_book_holder(db,session.get("username"),request.form,request.form["friend"])
+    except Exception as e:
+        flash(str(e))
     return redirect("/")
 
 @app.route("/friends")
@@ -129,5 +149,8 @@ def _friends():
 @app.route("/add_friend",methods=["POST"])
 def _add_friend():
     if not check_login(session): return redirect("/login")
-    add_friend(db,session.get("username"),request.form["name"])
+    try:
+        add_friend(db,session.get("username"),request.form["name"])
+    except Exception as e:
+        flash(str(e))
     return redirect("/friends")

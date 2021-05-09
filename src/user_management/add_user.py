@@ -1,4 +1,5 @@
 from werkzeug.security import generate_password_hash
+from src.services.exceptions import UsernameInUse, EmptyPassword
 
 def handle_registration(db,username,pw):
     query = "SELECT id FROM Users Where name=:username"
@@ -11,14 +12,10 @@ def handle_registration(db,username,pw):
         query = "INSERT INTO Users (name, password) VALUES (:name,:pw)"
         try:
             db.session.execute(query, {"name":username,"pw":pw_hash})
-            db.session.execute("INSERT INTO Friends (name) VALUES (:me)", {"me":'me'})
+            query = "INSERT INTO Friends (user_id, name) VALUES"+\
+                " ((SELECT id FROM Users WHERE name=:name), :me)"
+            db.session.execute(query, {"name":username, "me":'me'})
             db.session.commit()
         except Exception:
             print("virhe")
     return username 
-
-class UsernameInUse(Exception):
-        pass
-
-class EmptyPassword(Exception):
-        pass
