@@ -1,12 +1,36 @@
-<title>Friends</title>
-<h2>Current friends:</h2><br>
-{% for friend in friends %}
-    <li> {{friend}}
-{% endfor %}<br>
-<h2>Add a new friend:</h2><br>
-<form action="/add_friend" method="POST">
-Friend name: <br>
-<input type="text" name="name"><br>
-<input type="submit" value="add friend">
-</form>
-<a href="/">back to main page</a>
+<!DOCTYPE html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    </head>
+    <title>Bookkeeping app</title>
+    <body>
+        <nav class="navbar navbar-default">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">Bookkeeping app</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="/">Home</a></li>
+                <li><a href="/addtitle">Add a book</a></li>
+                <li><a href="/status">Add a status type</a></li>
+                <li class="active"><a href="/friends">Friends</a></li>
+                <li><a href="/logout">logout</a></li>
+            </ul>
+        </nav>
+        <div class="container-fluid text-center">
+            <title>Friends</title>
+            <h2>Current friends:</h2><br>
+            {% for friend in friends %}
+                <li> {{friend}} </li>
+            {% endfor %}<br>
+            <h2>Add a new friend:</h2><br>
+            <form action="/add_friend" method="POST">
+            Friend name: <br>
+            <input type="text" name="name"><br>
+            <input type="submit" value="add friend">
+            </form>
+        </div>
+    </body>
+</html>

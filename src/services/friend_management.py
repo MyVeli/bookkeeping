@@ -1,4 +1,6 @@
 def add_friend(db, username, name):
+    if len(name) > 30:
+        return
     query = "INSERT INTO Friends (user_id,name) VALUES ((SELECT id FROM Users" +\
         " WHERE Users.name=:username), :name)"
     db.session.execute(query,{"username":username,"name":name})

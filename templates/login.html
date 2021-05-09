@@ -1,12 +1,39 @@
-<title>login</title>
-<h1>Login to the Bookkeeping app</h1>
-{{message}} <br><br>
-<form action="/verify_credentials" method="POST">
-user name:<br>
-<input type="text" name="username"><br><br>
-password :<br>
-<input type="password" name="pw"><br>
-<input type="submit" value="login"><br>
-</form>
-<br>
-or <a href="/register">register</a> if you are a new user.
+<!DOCTYPE html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </head>
+    <title>Bookkeeping app</title>
+    <body>
+        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">Bookkeeping app</a>
+            </div>
+            <ul class="navbar-nav">
+                <li class="nav-item active"><a class="nav-link" href="/login">Login</a></li>
+                <li><a class="nav-link" href="/register">Register</a></li>
+            </ul>
+        </nav>
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <title>login</title>
+                    <h1>Login to the Bookkeeping app</h1>
+                    {{message}} <br><br>
+                    <form action="/verify_credentials" method="POST">
+                    user name:<br>
+                    <input type="text" name="username"><br><br>
+                    password :<br>
+                    <input type="password" name="pw"><br>
+                    <input type="submit" value="login"><br>
+                    </form>
+                    <br>
+                    or <a href="/register">register</a> if you are a new user.
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

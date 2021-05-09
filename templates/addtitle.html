@@ -1,35 +1,58 @@
-<h2>Add a title:</h2>
-<form action="/newtitle" method="POST">
-Author's name:
-<input type="text" name="author">
-<br>
-<br>
-Name of the book:
-<input type="text" name="name">
-<br>
-<br>
-Genre:
-<input type="text" name="genre">
-<br>
-<br>
-Status:
-<select id="status" name="status">
-    {% for i in statuses %}
-    <option value="{{i}}"> {{i}}</option>
-    {% endfor %}
-</select>
-<br>
-<br>
-new holder:
-<select id="friend" name="friend">
-    {% for i in friends %}
-    <option value="{{i}}"> {{i}}</option>
-    {% endfor %}
-</select> <br>
-<!--Add title to owned books?
-<input type="checkbox" name="add" value="True">
-<br>
-<br>-->
-<input type="submit" value="add book">
-</form>
-<a href="/">back to main page</a>
+<!DOCTYPE html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-default">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">Bookkeeping app</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="/">Home</a></li>
+                <li class="active"><a href="/addtitle">Add a book</a></li>
+                <li><a href="/status">Add a status type</a></li>
+                <li><a href="/friends">Friends</a></li>
+                <li><a href="/logout">logout</a></li>
+            </ul>
+        </nav>
+        <div class="container-fluid text-center">
+            <h2>Add a book:</h2>
+            <form action="/newtitle" method="POST">
+            Author's name:
+            <input type="text" name="author">
+            <br>
+            <br>
+            Name of the book:
+            <input type="text" name="name">
+            <br>
+            <br>
+            Genre:
+            <input type="text" name="genre">
+            <br>
+            <br>
+            Status:
+            <select id="status" name="status">
+                {% for i in statuses %}
+                <option value="{{i}}"> {{i}}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <br>
+            new holder:
+            <select id="friend" name="friend">
+                {% for i in friends %}
+                <option value="{{i}}"> {{i}}</option>
+                {% endfor %}
+            </select> <br>
+            <!--Add title to owned books?
+            <input type="checkbox" name="add" value="True">
+            <br>
+            <br>-->
+            <input type="submit" value="add book">
+            </form>
+        </div>
+    </body>
+</html>
