@@ -7,7 +7,7 @@ from src.user_management.login import handle_login
 from src.user_management.add_user import handle_registration
 from src.services.helper_functions import get_statuses, check_login
 from src.services.book_management import add_book, add_title, add_status,\
-    get_books_for_user_and_status, change_book_status, change_book_holder
+    get_books_for_user_and_status, change_book_status, change_book_holder, delete_book
 from src.services.friend_management import add_friend, get_friends
 from src.services.exceptions import UsernameInUse, EmptyPassword, EmptyInput,\
     DatabaseException, CredentialError, LongInput, AlreadyExistsException
@@ -133,11 +133,17 @@ def _add_status():
 @app.route("/change_status",methods=["POST"])
 def change_status():
     if not check_login(session): return redirect("/login")
-    try:
-        change_book_status(db,session.get("username"),request.form,request.form["status"])
-        change_book_holder(db,session.get("username"),request.form,request.form["friend"])
-    except Exception as e:
-        flash(str(e))
+    if request.form["action"] == "change":
+        try:
+            change_book_status(db,session.get("username"),request.form,request.form["status"])
+            change_book_holder(db,session.get("username"),request.form,request.form["friend"])
+        except Exception as e:
+            flash(str(e))
+    elif request.form["action"] == "delete":
+        try:
+            delete_book(db,session.get("username"),request.form)
+        except Exception as e:
+            flash(str(e))
     return redirect("/")
 
 @app.route("/friends")

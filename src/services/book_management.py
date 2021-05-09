@@ -88,6 +88,21 @@ def change_book_holder(db,username,titles,new_holder):
     except Exception as e:
         raise DatabaseException("Unexpected database error: "+str(e))
 
+def delete_book(db, username, titles):
+    """Deletes books from user. Can delete several at one time."""
+    title = titles_from_formlist(titles)
+    if len(title) == 0:
+        return
+    query = "DELETE FROM Book WHERE title_id IN "+\
+        "(SELECT id FROM Title WHERE concat(author,name,genre) IN :title) and owner_id = " +\
+        "(SELECT id FROM Users WHERE name=:username)"
+    try:
+        db.session.execute(query,{"name":username,"title":title,"username":username})
+        db.session.commit()
+    except Exception as e:
+        raise DatabaseException("Unexpected database error: "+str(e))
+
+
 def titles_from_formlist(form_list):
     """Returns a tuple with books. Picks items starting with "book:" from given array."""
     title_list = list()
@@ -111,3 +126,4 @@ def add_status(db, status):
         db.session.commit()
     except Exception as e:
         raise DatabaseException("Status already in the system")
+

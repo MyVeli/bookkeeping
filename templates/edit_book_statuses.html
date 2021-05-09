@@ -64,7 +64,10 @@
                                 {% endfor %}
                             </select>
                         </div> 
-                        <button type="submit" class="btn btn-primary">change book status</button>
+                        <button type="submit" class="btn btn-primary" name="action" value="change">
+                            change book status</button>
+                        <button type="submit" class="btn btn-primary" name="action" value="delete">
+                            delete selected</button>
                     </form>                    
                     {% with errors = get_flashed_messages() %}
                         {% for error in errors %}
